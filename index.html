@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lamy's Diner — Allergen Menu</title>
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Special+Elite&family=Bebas+Neue&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --neon-red: #ff2d55;
+    --neon-yellow: #ffe533;
+    --neon-teal: #00f5d4;
+    --neon-blue: #1af0ff;
+    --neon-pink: #ff6ec7;
+    --cream: #fef9ec;
+    --dark: #0d0d0d;
+    --dark-panel: #141414;
+    --chrome: #c0c0c0;
+    --red-glow: rgba(255,45,85,0.6);
+    --teal-glow: rgba(0,245,212,0.5);
+    --yellow-glow: rgba(255,229,51,0.6);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background-color: var(--dark);
+    color: var(--cream);
+    font-family: 'Special Elite', cursive;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Subtle noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.35;
+  }
+
+  /* Checkerboard floor strip */
+  .checker-strip {
+    height: 20px;
+    background-image: repeating-linear-gradient(
+      90deg,
+      #ff2d55 0px, #ff2d55 20px,
+      #0d0d0d 20px, #0d0d0d 40px
+    );
+    opacity: 0.7;
+  }
+
+  /* ====== HEADER ====== */
+  header {
+    position: relative;
+    text-align: center;
+    padding: 60px 20px 50px;
+    background: radial-gradient(ellipse at center top, rgba(255,45,85,0.12) 0%, transparent 70%);
+    border-bottom: 2px solid rgba(255,45,85,0.2);
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(255,255,255,0.012) 2px,
+      rgba(255,255,255,0.012) 4px
+    );
+    pointer-events: none;
+  }
+
+  .diner-tag {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.5em;
+    color: var(--neon-teal);
+    text-shadow: 0 0 10px var(--neon-teal), 0 0 20px var(--neon-teal);
+    margin-bottom: 14px;
+    animation: flicker-teal 6s infinite;
+  }
+
+  .diner-name {
+    font-family: 'Pacifico', cursive;
+    font-size: clamp(3.5rem, 10vw, 7rem);
+    color: var(--neon-red);
+    text-shadow:
+      0 0 7px #fff,
+      0 0 10px #fff,
+      0 0 21px #fff,
+      0 0 42px var(--neon-red),
+      0 0 82px var(--neon-red),
+      0 0 92px var(--neon-red),
+      0 0 102px var(--neon-red);
+    line-height: 1;
+    animation: flicker-red 8s infinite;
+  }
+
+  .neon-apostrophe { color: var(--neon-yellow); text-shadow: 0 0 7px #fff, 0 0 20px var(--neon-yellow), 0 0 60px var(--neon-yellow); }
+
+  .est-badge {
+    display: inline-block;
+    margin: 16px auto 0;
+    padding: 6px 24px;
+    border: 2px solid var(--neon-yellow);
+    border-radius: 2px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.35em;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 8px var(--neon-yellow), 0 0 20px var(--neon-yellow);
+    box-shadow: 0 0 10px rgba(255,229,51,0.3), inset 0 0 10px rgba(255,229,51,0.05);
+    animation: flicker-yellow 9s infinite;
+  }
+
+  .diner-subtitle {
+    margin-top: 20px;
+    font-family: 'Special Elite', cursive;
+    font-size: 0.9rem;
+    letter-spacing: 0.12em;
+    color: rgba(254,249,236,0.55);
+    text-transform: uppercase;
+  }
+
+  /* ====== ALLERGEN NOTICE BANNER ====== */
+  .notice-banner {
+    margin: 0 auto;
+    max-width: 900px;
+    padding: 20px 30px;
+    margin-top: 40px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(0,245,212,0.3);
+    border-radius: 2px;
+    background: rgba(0,245,212,0.04);
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: rgba(254,249,236,0.65);
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  .notice-banner strong {
+    color: var(--neon-teal);
+    display: block;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.25em;
+    margin-bottom: 6px;
+    text-shadow: 0 0 8px var(--neon-teal);
+  }
+
+  /* ====== ALLERGEN LEGEND ====== */
+  .legend-section {
+    max-width: 900px;
+    margin: 30px auto 0;
+    padding: 0 20px;
+  }
+
+  .legend-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.35em;
+    color: var(--neon-pink);
+    text-shadow: 0 0 10px var(--neon-pink);
+    text-align: center;
+    margin-bottom: 18px;
+  }
+
+  .legend-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px 24px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 2px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 30px;
+    background: rgba(255,255,255,0.04);
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    color: rgba(254,249,236,0.8);
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .legend-item:hover {
+    border-color: rgba(255,229,51,0.5);
+    background: rgba(255,229,51,0.06);
+  }
+
+  .legend-item .icon { font-size: 1.1rem; }
+  .legend-item .label { font-family: 'Special Elite', cursive; }
+
+  .divider {
+    max-width: 900px;
+    margin: 40px auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 0 20px;
+  }
+
+  .divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,45,85,0.5), transparent);
+  }
+
+  .divider-star {
+    font-size: 1.2rem;
+    color: var(--neon-red);
+    text-shadow: 0 0 10px var(--neon-red);
+  }
+
+  /* ====== MENU SECTIONS ====== */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 10px 20px 80px;
+  }
+
+  .menu-section {
+    margin-bottom: 60px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+
+  .section-line {
+    flex: 1;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.25;
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 0.2em;
+    white-space: nowrap;
+  }
+
+  .section-title.red   { color: var(--neon-red);   text-shadow: 0 0 15px var(--neon-red); }
+  .section-title.teal  { color: var(--neon-teal);  text-shadow: 0 0 15px var(--neon-teal); }
+  .section-title.yellow{ color: var(--neon-yellow); text-shadow: 0 0 15px var(--neon-yellow); }
+  .section-title.pink  { color: var(--neon-pink);  text-shadow: 0 0 15px var(--neon-pink); }
+  .section-title.blue  { color: var(--neon-blue);  text-shadow: 0 0 15px var(--neon-blue); }
+
+  /* Menu items */
+  .menu-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 18px 24px;
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 2px;
+    background: rgba(255,255,255,0.025);
+    margin-bottom: 10px;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .menu-item::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent, var(--neon-red));
+    box-shadow: 0 0 8px var(--accent, var(--neon-red));
+  }
+
+  .menu-item:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.15);
+    transform: translateX(3px);
+  }
+
+  .item-left { flex: 1; }
+
+  .item-name {
+    font-family: 'Special Elite', cursive;
+    font-size: 1.05rem;
+    color: var(--cream);
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+    line-height: 1.3;
+  }
+
+  .item-note {
+    font-size: 0.72rem;
+    color: rgba(254,249,236,0.4);
+    letter-spacing: 0.06em;
+    font-style: italic;
+  }
+
+  .allergen-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: flex-end;
+    align-items: center;
+    min-width: 130px;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    font-family: 'Bebas Neue', sans-serif;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+
+  .badge-wheat  { color: #fbbf24; border-color: rgba(251,191,36,0.4); background: rgba(251,191,36,0.08); }
+  .badge-dairy  { color: #93c5fd; border-color: rgba(147,197,253,0.4); background: rgba(147,197,253,0.08); }
+  .badge-egg    { color: #fde68a; border-color: rgba(253,230,138,0.4); background: rgba(253,230,138,0.08); }
+  .badge-peanut { color: #d97706; border-color: rgba(217,119,6,0.4);  background: rgba(217,119,6,0.08); }
+  .badge-soy    { color: #86efac; border-color: rgba(134,239,172,0.4); background: rgba(134,239,172,0.08); }
+  .badge-fish   { color: #67e8f9; border-color: rgba(103,232,249,0.4); background: rgba(103,232,249,0.08); }
+  .badge-corn   { color: #fde047; border-color: rgba(253,224,71,0.4);  background: rgba(253,224,71,0.08); }
+  .badge-mustard{ color: #fb923c; border-color: rgba(251,146,60,0.4);  background: rgba(251,146,60,0.08); }
+  .badge-clear  { color: #4ade80; border-color: rgba(74,222,128,0.4);  background: rgba(74,222,128,0.08); }
+
+  /* Kids section special styling */
+  .kids-icon {
+    font-size: 1.5rem;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  /* soup note */
+  .soup-note {
+    padding: 20px 24px;
+    border: 1px dashed rgba(255,229,51,0.25);
+    border-radius: 2px;
+    background: rgba(255,229,51,0.03);
+    font-size: 0.82rem;
+    color: rgba(254,249,236,0.55);
+    letter-spacing: 0.08em;
+    text-align: center;
+    font-style: italic;
+  }
+
+  .soup-note strong {
+    color: var(--neon-yellow);
+    display: block;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.3em;
+    margin-bottom: 4px;
+    text-shadow: 0 0 8px var(--neon-yellow);
+  }
+
+  /* ====== FOOTER ====== */
+  footer {
+    background: rgba(0,0,0,0.6);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .footer-logo {
+    font-family: 'Pacifico', cursive;
+    font-size: 1.8rem;
+    color: var(--neon-red);
+    text-shadow: 0 0 20px var(--neon-red);
+    margin-bottom: 10px;
+  }
+
+  .footer-info {
+    font-size: 0.75rem;
+    color: rgba(254,249,236,0.35);
+    letter-spacing: 0.12em;
+    line-height: 2;
+  }
+
+  .footer-info a {
+    color: rgba(0,245,212,0.6);
+    text-decoration: none;
+  }
+
+  /* ====== NEON FLICKER ANIMATIONS ====== */
+  @keyframes flicker-red {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+      text-shadow:
+        0 0 7px #fff, 0 0 10px #fff, 0 0 21px #fff,
+        0 0 42px var(--neon-red), 0 0 82px var(--neon-red),
+        0 0 92px var(--neon-red), 0 0 102px var(--neon-red);
+    }
+    20%, 24%, 55% {
+      text-shadow: none;
+    }
+  }
+
+  @keyframes flicker-teal {
+    0%, 29%, 31%, 80%, 82%, 100% {
+      text-shadow: 0 0 10px var(--neon-teal), 0 0 20px var(--neon-teal), 0 0 40px var(--neon-teal);
+    }
+    30%, 81% {
+      text-shadow: none;
+    }
+  }
+
+  @keyframes flicker-yellow {
+    0%, 44%, 46%, 70%, 72%, 100% {
+      text-shadow: 0 0 8px var(--neon-yellow), 0 0 20px var(--neon-yellow);
+      box-shadow: 0 0 10px rgba(255,229,51,0.3), inset 0 0 10px rgba(255,229,51,0.05);
+    }
+    45%, 71% {
+      text-shadow: none;
+      box-shadow: none;
+    }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Section accents */
+  .kids-section   { --accent: var(--neon-pink); }
+  .breakfast-section { --accent: var(--neon-yellow); }
+  .soup-section   { --accent: var(--neon-teal); }
+  .lunch-section  { --accent: var(--neon-red); }
+  .fountain-section { --accent: var(--neon-blue); }
+
+  /* responsive */
+  @media (max-width: 600px) {
+    .menu-item { flex-direction: column; }
+    .allergen-badges { justify-content: flex-start; min-width: unset; }
+    .diner-name { font-size: 3rem; }
+  }
+
+  /* ====== RETRO NEON SIGN DECORATION ====== */
+  .neon-sign-row {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin: 30px auto 0;
+    flex-wrap: wrap;
+  }
+
+  .neon-pill {
+    padding: 6px 22px;
+    border-radius: 50px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.3em;
+  }
+
+  .neon-pill.open {
+    color: var(--neon-teal);
+    border: 2px solid var(--neon-teal);
+    box-shadow: 0 0 12px var(--neon-teal), inset 0 0 8px rgba(0,245,212,0.1);
+    text-shadow: 0 0 8px var(--neon-teal);
+    animation: flicker-teal 7s infinite;
+  }
+
+  .neon-pill.eat {
+    color: var(--neon-yellow);
+    border: 2px solid var(--neon-yellow);
+    box-shadow: 0 0 12px var(--neon-yellow), inset 0 0 8px rgba(255,229,51,0.1);
+    text-shadow: 0 0 8px var(--neon-yellow);
+    animation: flicker-yellow 10s infinite;
+  }
+
+  .neon-pill.henry {
+    color: var(--neon-pink);
+    border: 2px solid var(--neon-pink);
+    box-shadow: 0 0 12px var(--neon-pink), inset 0 0 8px rgba(255,110,199,0.1);
+    text-shadow: 0 0 8px var(--neon-pink);
+  }
+
+  .page-bg-glow {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: -1;
+    filter: blur(120px);
+    opacity: 0.07;
+  }
+
+  .bg-glow-1 {
+    background: var(--neon-red);
+    top: -200px;
+    left: -100px;
+  }
+
+  .bg-glow-2 {
+    background: var(--neon-teal);
+    bottom: 0;
+    right: -150px;
+  }
+
+  /* Section stagger delays */
+  .menu-section:nth-child(1) { animation-delay: 0.1s; }
+  .menu-section:nth-child(2) { animation-delay: 0.2s; }
+  .menu-section:nth-child(3) { animation-delay: 0.3s; }
+  .menu-section:nth-child(4) { animation-delay: 0.4s; }
+  .menu-section:nth-child(5) { animation-delay: 0.5s; }
+</style>
+</head>
+<body>
+
+<div class="page-bg-glow bg-glow-1"></div>
+<div class="page-bg-glow bg-glow-2"></div>
+
+<div class="checker-strip"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="diner-tag">✦ Est. 1942 · Henry Ford Museum of American Innovation · Dearborn, Michigan ✦</div>
+  <div class="diner-name">Lamy<span class="neon-apostrophe">'</span>s Diner</div>
+  <div class="est-badge">Est. 1942</div>
+  <div class="diner-subtitle">New England Charm · Classic American Kitchen</div>
+  <div class="neon-sign-row">
+    <div class="neon-pill open">Open Daily 9:30 AM</div>
+    <div class="neon-pill eat">Lunch 11 AM – 3 PM</div>
+    <div class="neon-pill henry">The Henry Ford</div>
+  </div>
+</header>
+
+<!-- NOTICE -->
+<div class="notice-banner">
+  <strong>⚠ Allergen Information Notice</strong>
+  Menu items are prepared in a shared kitchen environment. Cross-contact with allergens is possible.
+  Please inform your server of any food allergies or dietary restrictions before ordering.
+  This guide is for informational purposes only — when in doubt, please speak with our staff.
+</div>
+
+<!-- LEGEND -->
+<div class="legend-section">
+  <div class="legend-title">— Allergen Key —</div>
+  <div class="legend-grid">
+    <div class="legend-item"><span class="icon">🥜</span><span class="label badge badge-peanut" style="border:none;background:none;padding:0">Peanut</span></div>
+    <div class="legend-item"><span class="icon">🌾</span><span class="label badge badge-wheat" style="border:none;background:none;padding:0">Wheat / Gluten</span></div>
+    <div class="legend-item"><span class="icon">🥛</span><span class="label badge badge-dairy" style="border:none;background:none;padding:0">Dairy / Milk</span></div>
+    <div class="legend-item"><span class="icon">🥚</span><span class="label badge badge-egg" style="border:none;background:none;padding:0">Egg</span></div>
+    <div class="legend-item"><span class="icon">🐟</span><span class="label badge badge-fish" style="border:none;background:none;padding:0">Fish</span></div>
+    <div class="legend-item"><span class="icon">🌽</span><span class="label badge badge-corn" style="border:none;background:none;padding:0">Corn</span></div>
+    <div class="legend-item"><span class="icon">🫘</span><span class="label badge badge-soy" style="border:none;background:none;padding:0">Soy</span></div>
+    <div class="legend-item"><span class="icon">🟠</span><span class="label badge badge-mustard" style="border:none;background:none;padding:0">Mustard</span></div>
+  </div>
+</div>
+
+<div class="divider"><div class="divider-line"></div><div class="divider-star">✦</div><div class="divider-line"></div></div>
+
+<!-- MAIN MENU -->
+<main>
+
+  <!-- KIDS MENU -->
+  <div class="menu-section kids-section" style="animation-delay:0.1s">
+    <div class="section-header">
+      <div class="section-line" style="color:var(--neon-pink)"></div>
+      <div class="section-title pink">Kids Menu <span class="kids-icon">🧒</span></div>
+      <div class="section-line" style="color:var(--neon-pink)"></div>
+    </div>
+
+    <div class="menu-item">
+      <div class="item-left">
+        <div class="item-name">Peanut Butter &amp; Strawberry Preserves</div>
+        <div class="item-note">Classic sandwich — a sweet &amp; satisfying favorite for little ones</div>
+      </div>
+      <div class="allergen-badges">
+        <span class="badge badge-peanut">🥜 Peanut</span>
+        <span class="badge badge-wheat">🌾 Wheat</span>
+      </div>
+    </div>
+
+    <div class="menu-item">
+      <div class="item-left">
+        <div class="item-name">Fluffernutter</div>
+        <div class="item-note">Peanut butter &amp; marshmallow fluff — a true New England original</div>
+      </div>
+      <div class="allergen-badges">
+        <span class="badge badge-peanut">🥜 Peanut</span>
+        <span class="badge badge-wheat">🌾 Wheat</span>
+      </div>
+    </div>
+
+    <div class="menu-item">
+      <div class="item-left">
+        <div class="item-name">Ham and Cheese</div>
+        <div class="item-note">Sliced ham with melted cheese on fresh bread</div>
+      </div>
+      <div class="allergen-badges">
+        <span class="badge badge-dairy">🥛 Dairy</span>
+        <span class="badge badge-wheat">🌾 Wheat</span>
+        <span class="badge badge-soy">🫘 Soy</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BREAKFAST -->
+  <div class="menu-section breakfast-section" style="animation-delay:0.2s">
+    <div class="section-header">
+      <div class="section-line" style="color:var(--neon-yellow)"></div>
+      <div class="section-title yellow">Breakfast</div>
+      <div class="section-line" style="color:var(--neon-yellow)"></div>
+    </div>
+
+    <div class="menu-item">
+      <div class="item-left">
+        <div class="item-name">Buttered Toast &amp; Strawberry Preserves</div>
+        <div class="item-note">Warm toasted bread with creamy butter and house-made jam</div>
+      </div>
+      <div class="allergen-badges">
+        <span class="badge badge-dairy">🥛 Dairy</span>
+        <span class="badge badge-wheat">🌾 Wheat</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOUPS -->
+  <div class="menu-section soup-section" style="animation-delay:0.25s">
+    <div class="section-header">
+      <div class="section-line" style="color:var(--neon-teal)"></div>
+      <div class="section-title teal">Daily Soups</div>
+      <div class="section-line" style="color:var(--neon-teal)"></div>
+    </div>
+
+    <div class="soup-note">
+      <strong>✦ Rotating Selections ✦</strong>
+      Our daily soups change frequently based on seasonal availability and kitchen specials.<br>
+      Please ask your server about today's selections and <strong style="color:var(--neon-red)">current allergen information</strong>.
+    </div>
+  </div>
+
+  <!-- LUNCH -->
+  <div class="menu-section lunch-section" style="animation-delay:0.3s">
+    <div class="section-header">
+      <div class="section-line" style="color:var(--neon-red)"></div>
+      <div class="section-title red">Lunch</div>
+      <div class="section-line" style="color:var(--neon-red)"></div>
+    </div>
+
+    <div class="menu-item">
+      <div class="item-left">
+        <div class="item-name">Chicken Salad Sandwich</div>
+        <div class="item-note">Prepared in the original 1940s Northeastern style</div>
+      </div>
+      <div class="allergen-badges">
+        <span class="badge badge-egg">🥚 Egg</span>
+        <span class="badge badge-wheat">🌾 Wheat</span>
+        <span class="badge badge-dairy">🥛 Dairy</span>
+        <span class="badge badge-soy">🫘 Soy</span>
+      </div>
+    </div>
+
+    <div class="menu-item">
+      <div class="item-left">
+        <div class="item-name">Turkey with Bacon and Cheese Sandwich</div>
+        <div class="item-note">Sliced turkey, crispy bacon &amp; melted cheese on toasted bread</div>
+      </div>
+      <div class="allergen-badges">
+        <span class="badge badge-dairy">🥛 Dairy</span>
+        <span class="badge badge-wheat">🌾 Wheat</span>
+        <span class="badge badge-soy">🫘 Soy</span>
+      </div>
+    </div>
+
+    <div class="menu-item">
+      <div class="item-left">
+        <div class="item-name">Pastrami and Swiss Sandwich</div>
+        <div class="item-note">House-cured pastrami with Swiss cheese — a deli classic</div>
+      </div>
+      <div class="allergen-badges">
+        <span class="badge badge-wheat">🌾 Wheat</span>
+        <span class="badge badge-dairy">🥛 Dairy</span>
+        <span class="badge badge-egg">🥚 Egg</span>
+        <span class="badge badge-soy">🫘 Soy</span>
+        <span class="badge badge-mustard">🟠 Mustard</span>
+      </div>
+    </div>
+
+    <div class="menu-item">
+      <div class="item-left">
+        <div class="item-name">Sloppy Joe</div>
+        <div class="item-note">A hearty American classic with savory meat sauce on a bun</div>
+      </div>
+      <div class="allergen-badges">
+        <span class="badge badge-wheat">🌾 Wheat</span>
+        <span class="badge badge-dairy">🥛 Dairy</span>
+        <span class="badge badge-fish">🐟 Fish</span>
+        <span class="badge badge-corn">🌽 Corn</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOUNTAIN SPECIALS -->
+  <div class="menu-section fountain-section" style="animation-delay:0.4s">
+    <div class="section-header">
+      <div class="section-line" style="color:var(--neon-blue)"></div>
+      <div class="section-title blue">Fountain Specials</div>
+      <div class="section-line" style="color:var(--neon-blue)"></div>
+    </div>
+
+    <div class="menu-item">
+      <div class="item-left">
+        <div class="item-name">Frappé — Vanilla, Strawberry, Chocolate, or Malted Milk</div>
+        <div class="item-note">The original Northeastern milkshake, prepared in true 1940s style</div>
+      </div>
+      <div class="allergen-badges">
+        <span class="badge badge-wheat">🌾 Wheat</span>
+        <span class="badge badge-egg">🥚 Egg</span>
+        <span class="badge badge-dairy">🥛 Dairy</span>
+        <span class="badge badge-soy">🫘 Soy</span>
+      </div>
+    </div>
+
+    <div class="menu-item">
+      <div class="item-left">
+        <div class="item-name">Floats — Faygo Rock &amp; Rye, Orange, Crème Soda, Root Beer, or Red Pop</div>
+        <div class="item-note">A scoop of vanilla ice cream topped with your choice of Michigan's own Faygo</div>
+      </div>
+      <div class="allergen-badges">
+        <span class="badge badge-clear">Please ask server</span>
+      </div>
+    </div>
+
+    <div class="menu-item">
+      <div class="item-left">
+        <div class="item-name">Sundaes — Chocolate or Strawberry</div>
+        <div class="item-note">Classic ice cream sundae with your choice of topping</div>
+      </div>
+      <div class="allergen-badges">
+        <span class="badge badge-clear">Please ask server</span>
+      </div>
+    </div>
+
+    <div class="menu-item">
+      <div class="item-left">
+        <div class="item-name">Slice of Pie — Cherry, Mixed Berry, or Blueberry</div>
+        <div class="item-note">Freshly baked in-house · rotating daily selections available</div>
+      </div>
+      <div class="allergen-badges">
+        <span class="badge badge-wheat">🌾 Wheat</span>
+        <span class="badge badge-dairy">🥛 Dairy</span>
+        <span class="badge badge-egg">🥚 Egg</span>
+        <span class="badge badge-corn">🌽 Corn</span>
+        <span class="badge badge-soy">🫘 Soy</span>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="checker-strip"></div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Lamy's Diner</div>
+  <div class="footer-info">
+    Henry Ford Museum of American Innovation · Dearborn, Michigan<br>
+    Open Daily 9:30 AM · Lunch Served 11 AM – 3 PM<br>
+    <a href="tel:3139826001">313-982-6001</a> · <a href="https://www.thehenryford.org/visit/things-to-do/dining/lamys-diner">thehenryford.org</a><br><br>
+    Allergen information is provided as guidance only. Cross-contact may occur in our shared kitchen.<br>
+    Please notify our staff of severe allergies before ordering.
+  </div>
+</footer>
+
+</body>
+</html>
